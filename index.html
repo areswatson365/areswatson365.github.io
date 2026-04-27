@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SAAI Demo Prototype</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="nav">
+      <div class="brand">SAAI <span class="accent">TERMINAL</span></div>
+      <div class="meta">演示原型 — 无需后端</div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <div class="loader" id="loader">AI 正在扫描市场环境...</div>
+      </section>
+
+      <section class="grid" id="dashboard" style="display:none;">
+        <aside class="left">
+          <h3>情景驾驶仓</h3>
+          <div id="scenarioCard" class="card"></div>
+
+          <h3>舆情实时脉动</h3>
+          <div id="activity" class="card"></div>
+        </aside>
+
+        <section class="center">
+          <h3>市场概览</h3>
+          <div id="indices" class="cards"></div>
+
+          <h3>实时异动观察</h3>
+          <table id="spot" class="spot-table">
+            <thead><tr><th>代码</th><th>名称</th><th>最新价</th><th>涨跌幅</th><th>成交额(亿)</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </section>
+
+        <aside class="right">
+          <h3>建议组合</h3>
+          <div id="portfolio" class="card"></div>
+
+          <h3>系统日志</h3>
+          <div id="traces" class="card"></div>
+        </aside>
+      </section>
+
+      <footer class="foot">演示页面 — 可部署到 GitHub Pages / Netlify</footer>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
