@@ -61,66 +61,16 @@ function clearContainers(){
 }
 
 function renderAll(){
-  document.getElementById('loader').style.display='none';
-  document.getElementById('dashboard').style.display='grid';
-  clearContainers();
-
-  // indices
-  const indices = document.getElementById('indices');
-  MOCK.indices.forEach(i=>{
-    const d = document.createElement('div'); d.className='card';
-    const name = LANG==='zh' ? i.名称 : (i.name_en||i.名称);
-    d.innerHTML = `<div class="index-value">${i.最新价.toFixed(1)}</div><div class="muted">${name} <span class="${i.涨跌幅>=0?'pct-up':'pct-down'}">${i.涨跌幅>0?'+':''}${i.涨跌幅}%</span></div>`;
-    indices.appendChild(d);
-  });
-
-  // spot table
-  const tbody = document.querySelector('#spot tbody');
-  MOCK.stocks.forEach(s=>{
-    const displayName = LANG==='zh' ? s.名称 : (s.name_en||s.名称);
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${s.代码}</td><td>${displayName}</td><td>${s.最新价.toFixed(2)}</td><td class='${s.涨跌幅>=0?'pct-up':'pct-down'}'>${s.涨跌幅>0?'+':''}${s.涨跌幅}%</td><td>${(s.成交额/100000000).toFixed(2)}</td>`;
-    // If not pro, hide成交额列 value (demo of feature gating)
-    if(!IS_PRO){ tr.querySelectorAll('td')[4].textContent = '—'; }
-    tbody.appendChild(tr);
-  });
-
-  // scenario
-  const sc = document.getElementById('scenarioCard');
-  const scen = MOCK.strategy.scenario;
-  sc.innerHTML = `<div class='card'><strong>${LANG==='zh'?scen.name_cn:scen.name_en}</strong><p style="color:var(--muted);font-size:13px">${LANG==='zh'?scen.desc_cn:scen.desc_en}</p></div>`;
-
-  // portfolio
-  const pf = document.getElementById('portfolio');
-  pf.innerHTML = MOCK.strategy.portfolio.map(p=>{
-    const n = LANG==='zh'?p.name:p.name_en||p.name;
-    const reason = LANG==='zh'?p.reason_cn:p.reason_en||'';
-    const extra = (p.type==='ETF' || p.code==='CASH') ? `<div style="font-size:12px;color:var(--muted)">${p.type}</div>` : '';
-    return `<div style="margin-bottom:8px"><strong>${n}</strong><div style="font-size:13px;color:var(--muted)">${p.code} • ${p.weight}% ${extra}</div><div style="font-size:12px;color:var(--muted)">${reason}</div></div>`;
-  }).join('');
-
-  // traces
-  const trBox = document.getElementById('traces');
-  trBox.innerHTML = MOCK.traces.map(t=>`<div style="font-size:13px;color:var(--muted);margin-bottom:6px">&gt; ${LANG==='zh'?t.cn:t.en}</div>`).join('');
-
-  // activity
-  const act = document.getElementById('activity');
-  act.innerHTML = MOCK.activity.map(a=>`<div style="margin-bottom:6px"><div style="font-size:11px;color:var(--muted)">${a.time}</div><div>${LANG==='zh'?a.msg_cn:a.msg_en}</div></div>`).join('');
-
-  // pro-only analytics box
-  const right = document.querySelector('.right');
-  let analyticsBox = document.getElementById('analyticsBox');
-  if(IS_PRO){
-    if(!analyticsBox){
-      analyticsBox = document.createElement('div');
-      analyticsBox.id='analyticsBox'; analyticsBox.className='card';
-      analyticsBox.style.marginTop='12px';
-      document.getElementById('portfolio').parentNode.insertBefore(analyticsBox, document.getElementById('traces'));
-    }
-    analyticsBox.innerHTML = `<div><strong>${LANG==='zh'?'专业分析':'Pro Analytics'}</strong><div style="font-size:13px;color:var(--muted);margin-top:6px">Sentiment: ${MOCK.analytics.sentiment_score} • Northflow: ${MOCK.analytics.northbound_flow}</div></div>`;
-  } else {
-    if(analyticsBox) analyticsBox.remove();
-  }
+  // Unified renderer for SPA: hide loader, show nav/pages and render page components safely
+  const loader = document.getElementById('loader'); if(loader) loader.style.display='none';
+  try{ navShow(); }catch(e){}
+  try{ renderScenarios(); }catch(e){}
+  try{ renderStrategyPage(); }catch(e){}
+  try{ renderDetails(); }catch(e){}
+  try{ renderRebalance(); }catch(e){}
+  try{ renderBusiness(); }catch(e){}
+  try{ renderCompetitors(); }catch(e){}
+  try{ renderProfile(); }catch(e){}
 }
 
 // event wiring
