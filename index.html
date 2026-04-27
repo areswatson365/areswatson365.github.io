@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAAI 智能终端 - 1:1 官方还原版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', -apple-system, sans-serif; background-color: #050505; color: #d1d5db; overflow-x: hidden; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .animate-in { animation: fade-in 0.5s ease-out forwards; }
+        @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        /* 核心修复：确保点击穿透 */
+        .no-click-shield { pointer-events: none; }
+        .clickable { pointer-events: auto !important; cursor: pointer !important; }
+    </style>
+</head>
+<body class="selection:bg-emerald-500/30">
+    <script src="mockData.js"></script>
+
+    <div id="app">
+        <!-- 步骤 1: 语言选择 (最高层级) -->
+        <div id="step-0-lang" class="fixed inset-0 z-[500] bg-[#050505] flex items-center justify-center p-6 bg-grid-white/[0.02]">
+            <div class="max-w-md w-full space-y-12 animate-in text-center">
+                <div class="space-y-4">
+                    <div class="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/20">
+                        <i data-lucide="globe" class="text-black w-10 h-10"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-white italic tracking-tighter uppercase">Select Your Language</h2>
+                </div>
+                <div class="grid grid-cols-1 gap-4">
+                    <button type="button" onclick="handleLangSelection('zh')" class="clickable group p-6 rounded-2xl border border-zinc-800 bg-zinc-900/40 hover:border-emerald-500 transition-all flex items-center justify-between">
+                        <div class="text-left no-click-shield">
+                            <div class="text-xl font-black text-white">简体中文</div>
+                            <div class="text-xs text-zinc-500 uppercase font-bold tracking-widest">Simplified Chinese</div>
+                        </div>
+                        <i data-lucide="chevron-right" class="text-zinc-700 group-hover:text-emerald-500 transition-colors no-click-shield"></i>
+                    </button>
+                    <button type="button" onclick="handleLangSelection('en')" class="clickable group p-6 rounded-2xl border border-zinc-800 bg-zinc-900/40 hover:border-emerald-500 transition-all flex items-center justify-between">
+                        <div class="text-left no-click-shield">
+                            <div class="text-xl font-black text-white">English</div>
+                            <div class="text-xs text-zinc-500 uppercase font-bold tracking-widest">Global Terminal</div>
+                        </div>
+                        <i data-lucide="chevron-right" class="text-zinc-700 group-hover:text-emerald-500 transition-colors no-click-shield"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤 2: 投资者画像 -->
+        <div id="step-1-onboarding" class="hidden fixed inset-0 z-[400] bg-[#050505] flex items-center justify-center p-6 overflow-y-auto">
+            <div class="max-w-xl w-full space-y-10 animate-in">
+                <div class="text-center space-y-4">
+                    <div class="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/20">
+                        <i data-lucide="brain-circuit" class="text-black w-10 h-10"></i>
+                    </div>
+                    <h1 class="text-3xl font-black text-white italic tracking-tighter uppercase" id="ob-title">投资者画像配置</h1>
+                    <p class="text-zinc-500 text-sm font-medium" id="ob-subtitle"></p>
+                </div>
+
+                <div class="space-y-8 bg-zinc-900/40 border border-zinc-800 p-8 rounded-3xl relative">
+                    <div class="space-y-4">
+                        <label id="ob-label-type" class="text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-2"></label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button type="button" id="type-retail" onclick="setUserPref('type', 'retail')" class="clickable ob-opt p-4 rounded-xl border border-emerald-500 bg-zinc-900/60 text-left">
+                                <div class="text-white font-bold text-sm no-click-shield" id="label-type-retail-cn">A股散户</div>
+                                <div class="text-[10px] text-zinc-500 uppercase no-click-shield" id="label-type-retail-en">A-Share Retail</div>
+                            </button>
+                            <button type="button" id="type-hknorth" onclick="setUserPref('type', 'hknorth')" class="clickable ob-opt p-4 rounded-xl border border-zinc-800 bg-zinc-900/60 text-left">
+                                <div class="text-white font-bold text-sm no-click-shield" id="label-type-hk-cn">香港北上个人</div>
+                                <div class="text-[10px] text-zinc-500 uppercase no-click-shield" id="label-type-hk-en">HK Northbound</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <label id="ob-label-risk" class="text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-2"></label>
+                        <div class="grid grid-cols-3 gap-3">
+                            <button type="button" id="risk-low" onclick="setUserPref('risk', 'low')" class="clickable ob-opt p-4 rounded-xl border border-zinc-800 bg-zinc-900/60 text-center font-bold text-xs text-white">保守型</button>
+                            <button type="button" id="risk-mid" onclick="setUserPref('risk', 'mid')" class="clickable ob-opt p-4 rounded-xl border border-zinc-800 bg-zinc-900/60 text-center font-bold text-xs text-white">平衡型</button>
+                            <button type="button" id="risk-high" onclick="setUserPref('risk', 'high')" class="clickable ob-opt p-4 rounded-xl border border-emerald-500 bg-zinc-900/60 text-center font-bold text-xs text-white">进取型</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <label id="ob-label-term" class="text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-2"></label>
+                        <div class="grid grid-cols-3 gap-3">
+                            <button type="button" id="term-short" onclick="setUserPref('term', 'short')" class="clickable ob-opt p-4 rounded-xl border border-zinc-800 bg-zinc-900/60 text-center font-bold text-xs text-white">短期</button>
+                            <button type="button" id="term-mid" onclick="setUserPref('term', 'mid')" class="clickable ob-opt p-4 rounded-xl border border-emerald-500 bg-zinc-900/60 text-center font-bold text-xs text-white">中期</button>
+                            <button type="button" id="term-long" onclick="setUserPref('term', 'long')" class="clickable ob-opt p-4 rounded-xl border border-zinc-800 bg-zinc-900/60 text-center font-bold text-xs text-white">长期</button>
+                        </div>
+                    </div>
+
+                    <button type="button" onclick="runAnalysis()" class="clickable w-full py-5 bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-emerald-500/20" id="btn-run">开始 AI 智能分析</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤 3: 加载动画 -->
+        <div id="step-2-loading" class="hidden fixed inset-0 z-[600] bg-[#050505] flex items-center justify-center text-emerald-500 font-mono">
+            <div class="text-center space-y-6">
+                 <div class="relative w-24 h-24 mx-auto">
+                    <div class="absolute inset-0 border-4 border-emerald-500/20 rounded-full"></div>
+                    <div class="absolute inset-0 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                    <i data-lucide="cpu" class="absolute inset-0 m-auto w-8 h-8 animate-pulse"></i>
+                 </div>
+                 <div class="text-xl tracking-tighter uppercase font-black" id="loading-txt">Evaluating Risk...</div>
+            </div>
+        </div>
+
+        <!-- 步骤 4: 主终端 -->
+        <div id="step-3-dashboard" class="hidden min-h-screen pb-20">
+            <nav class="border-b border-gray-800 bg-black/80 backdrop-blur-xl sticky top-0 z-50 px-6 h-20 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/20"><i data-lucide="zap" class="text-black w-6 h-6"></i></div>
+                    <span class="text-xl font-black text-white uppercase italic" id="nav-title">SAAI TERMINAL</span>
+                </div>
+                <div class="flex items-center gap-6">
+                    <button onclick="toggleLang()" class="clickable px-3 py-1.5 border border-zinc-800 rounded text-[10px] font-bold text-zinc-400 hover:text-emerald-500 transition-colors uppercase"><i data-lucide="globe" class="inline w-3 h-3 mr-1"></i><span id="nav-lang-btn">ZH</span></button>
+                    <div id="clock" class="mono text-zinc-500 text-xs hidden md:block">00:00:00</div>
+                </div>
+            </nav>
+
+            <main class="max-w-[1600px] mx-auto p-6 space-y-8 animate-in" id="main-content">
+                <!-- 由渲染引擎动态生成内容以确保一致性 -->
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // --- 核心状态 ---
+        let currentStep = 0;
+        let lang = 'zh';
+        let isPro = false;
+        let userPrefs = { type: 'retail', risk: 'high', term: 'mid' };
+
+        // --- 交互处理器 ---
+        function handleLangSelection(l) {
+            lang = l;
+            document.getElementById('step-0-lang').style.display = 'none';
+            document.getElementById('step-1-onboarding').style.display = 'flex';
+            syncOnboardingText();
+        }
+
+        function setUserPref(cat, val) {
+            userPrefs[cat] = val;
+            // 更新 UI 样式
+            document.querySelectorAll(`.ob-opt[id^="${cat}-"]`).forEach(el => {
+                el.classList.remove('border-emerald-500', 'shadow-[0_0_15px_rgba(16,185,129,0.1)]');
+                el.classList.add('border-zinc-800');
+            });
+            const selected = document.getElementById(`${cat}-${val}`);
+            selected.classList.remove('border-zinc-800');
+            selected.classList.add('border-emerald-500', 'shadow-[0_0_15px_rgba(16,185,129,0.1)]');
+        }
+
+        function runAnalysis() {
+            document.getElementById('step-1-onboarding').style.display = 'none';
+            document.getElementById('step-2-loading').style.display = 'flex';
+            
+            const steps = lang === 'zh' ? ["评估风险特征...", "扫描北向资金...", "优化资产配置...", "生成智能终端..."] : ["Profiling...", "Scanning Flow...", "Optimizing...", "Generating..."];
+            let idx = 0;
+            const timer = setInterval(() => {
+                document.getElementById('loading-txt').textContent = steps[idx];
+                idx++;
+                if(idx >= steps.length) {
+                    clearInterval(timer);
+                    document.getElementById('step-2-loading').style.display = 'none';
+                    document.getElementById('step-3-dashboard').style.display = 'block';
+                    updateMainUI();
+                }
+            }, 600);
+        }
+
+        function syncOnboardingText() {
+            const isZh = lang === 'zh';
+            document.getElementById('ob-title').textContent = isZh ? "投资者画像配置" : "Investor Profiling";
+            document.getElementById('ob-subtitle').textContent = isZh ? "AI 将为您定制专属策略终端" : "AI will customize your strategy terminal";
+            document.getElementById('ob-label-type').innerHTML = `<i data-lucide="user" class="w-3 h-3"></i> ${isZh ? '投资者身份' : 'Investor Type'}`;
+            document.getElementById('ob-label-risk').innerHTML = `<i data-lucide="trending-up" class="w-3 h-3"></i> ${isZh ? '风险承受能力' : 'Risk Tolerance'}`;
+            document.getElementById('ob-label-term').innerHTML = `<i data-lucide="clock" class="w-3 h-3"></i> ${isZh ? '投资期限' : 'Horizon'}`;
+            document.getElementById('btn-run').textContent = isZh ? "开始 AI 智能分析" : "START AI ANALYSIS";
+            
+            // 静态翻译文本
+            const tMap = {
+                "risk-low": isZh ? "保守型" : "Conservative",
+                "risk-mid": isZh ? "平衡型" : "Balanced",
+                "risk-high": isZh ? "进取型" : "Aggressive",
+                "term-short": isZh ? "短期" : "Short-term",
+                "term-mid": isZh ? "中期" : "Mid-term",
+                "term-long": isZh ? "长期" : "Long-term"
+            };
+            Object.keys(tMap).forEach(id => document.getElementById(id).textContent = tMap[id]);
+            lucide.createIcons();
+        }
+
+        function toggleLang() {
+            lang = lang === 'zh' ? 'en' : 'zh';
+            updateMainUI();
+        }
+
+        // --- 渲染引擎 (完全还原原版布局) ---
+        function updateMainUI() {
+            renderDashboard();
+            lucide.createIcons();
+        }
+
+        function renderDashboard() {
+            const data = window.MOCK_DATA;
+            const isZh = lang === 'zh';
+            const m = isPro ? data.marketStatus.pro : data.marketStatus.free;
+            const r = isPro ? data.recommend.pro : data.recommend.free;
+            const n = data.news.data;
+            const b = data.backtest.metrics;
+            const s = data.spot.data;
+
+            // 翻译字典
+            const dict = {
+                title: isZh ? "SAAI 智能终端" : "SAAI TERMINAL",
+                scenarios: isZh ? "AI 情景判断" : "AI SCENARIOS",
+                newsTitle: isZh ? "实时财经速递" : "LIVE NEWS",
+                portfolio: isZh ? "建议投资组合" : "PORTFOLIO",
+                rationale: isZh ? "配置逻辑 (XAI)" : "RATIONALES (XAI)",
+                locked: isZh ? "持仓锁定期" : "HOLDING LOCK",
+                lockedMsg: isZh ? "根据规范，核心组合持仓周期必须 ≥ 7 天。当前系统处于观察锁定状态。" : "Per specs, core portfolio holding must be ≥ 7 days. System is in Observation Lock.",
+                btTitle: isZh ? "策略回测表现" : "BACKTEST METRICS",
+                membership: isZh ? "会员级别" : "MEMBERSHIP",
+                revenue: isZh ? "业务营收概览" : "REVENUE STRUCTURE",
+                proTitle: isZh ? "专业版" : "PRO",
+                freeTitle: isZh ? "免费版" : "FREE",
+                upgrade: isZh ? "立即升级" : "UPGRADE NOW",
+                spotTitle: isZh ? "全市场热度 (AI 扫描)" : "MARKET SCANNER"
+            };
+
+            // 更新 Navbar
+            document.getElementById('nav-title').textContent = dict.title;
+            document.getElementById('nav-lang-btn').textContent = lang.toUpperCase();
+
+            document.getElementById('main-content').innerHTML = `
+                <!-- 第一行: 行情指标与新闻 -->
+                <section class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    <div class="lg:col-span-3 space-y-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-1 h-5 bg-emerald-500 rounded-full"></div>
+                            <h2 class="text-sm font-black text-white uppercase tracking-widest">${dict.scenarios}</h2>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                             ${m.indices.map(idx => `
+                                <div class="bg-zinc-900/40 border border-zinc-800 p-5 rounded-2xl hover:border-emerald-500/30 transition-all">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <span class="text-zinc-500 text-[10px] font-bold uppercase truncate">${idx.名称}</span>
+                                        <i data-lucide="${idx.涨跌幅 >= 0 ? 'trending-up' : 'trending-down'}" class="${idx.涨跌幅 >= 0 ? 'text-emerald-500' : 'text-red-500'} w-4 h-4"></i>
+                                    </div>
+                                    <div class="text-2xl font-mono font-black text-white tracking-tighter">${idx.最新价.toFixed(1)}</div>
+                                    <div class="text-xs font-bold ${idx.涨跌幅 >= 0 ? 'text-emerald-500' : 'text-red-500'}">
+                                        ${idx.涨跌幅 > 0 ? '+' : ''}${idx.涨跌幅}%
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-1 space-y-4">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="newspaper" class="text-emerald-500 w-4 h-4"></i>
+                            <h2 class="text-sm font-black text-white uppercase tracking-widest">${dict.newsTitle}</h2>
+                        </div>
+                        <div class="bg-zinc-900/40 border border-zinc-800 rounded-2xl p-4 h-[120px] overflow-y-auto space-y-3 scrollbar-hide">
+                            ${n.map(item => `
+                                <div class="flex gap-3 items-start border-l border-emerald-500/30 pl-3">
+                                    <span class="text-[10px] font-mono text-emerald-500">${item.time}</span>
+                                    <p class="text-[11px] text-zinc-400 leading-tight">${isZh ? item.title_cn : item.title_en}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </section>
+
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                    <!-- 左侧: 组合配置 -->
+                    <div class="xl:col-span-2 space-y-8">
+                        <div class="bg-zinc-900/20 border border-zinc-800 rounded-3xl p-8 backdrop-blur-sm relative overflow-hidden">
+                             <div class="flex items-center justify-between mb-8">
+                                <h2 class="text-xl font-black text-white flex items-center gap-3 italic font-mono uppercase">
+                                    <i data-lucide="shield" class="text-emerald-500"></i> ${dict.portfolio}
+                                </h2>
+                                <div class="text-3xl font-black text-white italic tracking-tighter">
+                                    ${isZh ? r.scenario.name_cn : r.scenario.name_en}
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                <div class="space-y-4">
+                                    ${r.portfolio.map(p => `
+                                        <div class="group flex items-center justify-between p-5 bg-zinc-900/60 rounded-2xl border border-zinc-800/40 hover:border-emerald-500/40 transition-all">
+                                            <div class="flex items-center gap-4">
+                                                <div class="w-12 h-12 rounded-xl flex items-center justify-center font-black text-[10px] ${p.type === 'ETF' ? 'bg-amber-500/10 text-amber-500' : (p.type === 'Cash' ? 'bg-zinc-800 text-zinc-400' : 'bg-emerald-500/10 text-emerald-500')}">
+                                                    ${p.type}
+                                                </div>
+                                                <div>
+                                                    <div class="text-white font-bold text-lg group-hover:text-emerald-400 transition-colors uppercase">${p.name}</div>
+                                                    <div class="text-[10px] text-zinc-500 font-mono tracking-widest">${p.code}</div>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-xl font-mono font-black text-white italic">${p.weight}%</div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                    
+                                    <div class="p-4 bg-red-500/5 border border-red-500/20 rounded-2xl flex items-start gap-4 mt-6">
+                                        <i data-lucide="lock" class="text-red-500 w-5 h-5 flex-shrink-0"></i>
+                                        <div class="space-y-1">
+                                            <div class="text-xs font-black text-red-500 uppercase italic tracking-widest">${dict.locked}</div>
+                                            <p class="text-[11px] text-zinc-400 leading-relaxed">${dict.lockedMsg}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-6">
+                                    <h3 class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-4">${dict.rationale}</h3>
+                                    <div class="space-y-6">
+                                        ${r.portfolio.map(p => `
+                                            <div class="relative pl-6 border-l-2 border-zinc-800 pb-1">
+                                                <div class="absolute -left-[5px] top-0 w-2 h-2 rounded-full bg-emerald-500"></div>
+                                                <div class="text-[11px] font-black text-white uppercase mb-1">${p.name} Logic</div>
+                                                <p class="text-xs text-zinc-500 leading-tight">
+                                                    ${isZh ? p.reason_cn : p.reason_en}
+                                                </p>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+
+                                    ${isPro ? `
+                                        <div class="mt-10 pt-10 border-t border-zinc-800 space-y-6">
+                                            <div class="text-xs font-black text-white uppercase italic">${dict.btTitle}</div>
+                                            <div class="grid grid-cols-2 gap-4">
+                                                <div class="p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10 text-center">
+                                                    <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Total Return</div>
+                                                    <div class="text-lg font-black text-emerald-500 font-mono italic">${b.total_return}</div>
+                                                </div>
+                                                <div class="p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/10 text-center">
+                                                    <div class="text-[10px] text-zinc-500 uppercase font-bold mb-1">Sharpe Ratio</div>
+                                                    <div class="text-lg font-black text-white font-mono italic">${b.sharpe}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ` : `
+                                        <div class="mt-10 p-8 bg-zinc-900/80 border border-emerald-500/20 rounded-3xl text-center">
+                                            <i data-lucide="alert-triangle" class="mx-auto text-amber-500 mb-3 w-8 h-8"></i>
+                                            <div class="text-sm font-black text-white uppercase mb-4">PRO Metrics Locked</div>
+                                            <button onclick="isPro=true;updateMainUI()" class="clickable w-full py-3 bg-emerald-500 text-black font-black text-[10px] uppercase rounded-xl transition-all">
+                                                ${dict.upgrade}
+                                            </button>
+                                        </div>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 扩展: 扫描器列表 -->
+                        <div class="bg-zinc-900/20 border border-zinc-800 rounded-3xl p-8">
+                            <div class="flex items-center gap-3 mb-6">
+                                <i data-lucide="activity" class="text-emerald-500 w-5 h-5"></i>
+                                <h2 class="text-sm font-black text-white uppercase tracking-[0.2em]">${dict.spotTitle}</h2>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="text-zinc-500 font-bold uppercase border-b border-zinc-800">
+                                        <tr>
+                                            <th class="pb-4">Code</th>
+                                            <th class="pb-4">Name</th>
+                                            <th class="pb-4">Price</th>
+                                            <th class="pb-4">Change</th>
+                                            <th class="pb-4 text-right">Volume</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-white mono shrink-0">
+                                        ${s.map(stock => `
+                                            <tr class="border-b border-zinc-800/20 hover:bg-white/[0.02] transition-colors">
+                                                <td class="py-4 text-zinc-500">${stock.代码}</td>
+                                                <td class="py-4 font-bold text-gray-200">${stock.名称}</td>
+                                                <td class="py-4">${stock.最新价.toFixed(2)}</td>
+                                                <td class="py-4 ${stock.涨跌幅 >= 0 ? 'text-emerald-500' : 'text-red-500'}">${stock.涨跌幅 > 0 ? '+' : ''}${stock.涨跌幅}%</td>
+                                                <td class="py-4 text-right text-zinc-400">${(stock.成交额 / 1000000).toFixed(1)}M</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右侧: 用户状态 -->
+                    <div class="space-y-8">
+                        <div class="bg-gradient-to-b from-[#0a0a0a] to-[#050505] border border-zinc-800 rounded-3xl p-8 sticky top-28 font-mono">
+                            <h3 class="text-emerald-500 text-[10px] font-black uppercase tracking-[0.3em] mb-8">${dict.membership}</h3>
+                            
+                            <div class="space-y-8">
+                                <div class="relative p-6 rounded-2xl border border-zinc-800 bg-zinc-900/20 overflow-hidden">
+                                    <div class="absolute top-0 right-0 p-3 text-[8px] font-black rounded-bl-xl ${isPro ? 'bg-amber-500 text-black' : 'bg-zinc-800 text-zinc-500'}">
+                                        ${isPro ? 'PREMIUM' : 'STANDARD'}
+                                    </div>
+                                    <div class="text-3xl font-black text-white italic mb-1 uppercase">${isPro ? 'SAAI PRO' : 'SAAI FREE'}</div>
+                                    <div class="text-[10px] text-zinc-500 uppercase font-bold">${userPrefs.type === 'retail' ? (isZh ? 'A股散户' : 'RETAIL') : (isZh ? '香港北上' : 'HK NORTH')} | ACTIVE</div>
+                                </div>
+
+                                <div class="space-y-4">
+                                    <div class="flex justify-between items-center bg-gray-900/50 p-4 rounded-xl border border-zinc-800">
+                                        <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">Sentiment Score</span>
+                                        <span class="text-sm font-black text-emerald-500">${m.analytics.sentiment_score}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center bg-gray-900/50 p-4 rounded-xl border border-zinc-800">
+                                        <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">Northbound Flow</span>
+                                        <span class="text-sm font-black text-white">${m.analytics.northbound_flow}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center bg-gray-900/50 p-4 rounded-xl border border-emerald-500/20">
+                                        <span class="text-[10px] font-bold text-emerald-500 uppercase tracking-tighter">AI Signal</span>
+                                        <span class="text-sm font-black text-emerald-500 italic uppercase">${m.analytics.ai_signal}</span>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-4">
+                                    <h4 class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">${dict.revenue}</h4>
+                                    ${[
+                                        { label: "Subscriptions", val: 60, col: "bg-emerald-500" },
+                                        { label: "B2B2C API", val: 25, col: "bg-emerald-400" },
+                                        { label: "Add-ons", val: 15, col: "bg-emerald-300" }
+                                    ].map(item => `
+                                        <div class="space-y-2">
+                                            <div class="flex justify-between text-[10px] font-bold">
+                                                <span class="text-zinc-500 uppercase">${item.label}</span>
+                                                <span class="text-white">${item.val}%</span>
+                                            </div>
+                                            <div class="h-1 bg-zinc-800 rounded-full overflow-hidden">
+                                                <div class="h-full ${item.col}" style="width: ${item.val}%"></div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <button onclick="isPro=!isPro;updateMainUI()" class="clickable w-full py-4 rounded-xl font-black text-[10px] uppercase tracking-widest ${isPro ? 'bg-zinc-800 text-zinc-400 hover:text-white' : 'bg-emerald-500 text-black hover:bg-emerald-400'} transition-all">
+                                    ${isPro ? 'Switch to Standard' : dict.upgrade}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- 初始化 ---
+        window.onload = () => {
+            lucide.createIcons();
+            setInterval(() => {
+                const el = document.getElementById('clock');
+                if(el) el.textContent = new Date().toLocaleTimeString();
+            }, 1000);
+        };
+    </script>
+</body>
+</html>
